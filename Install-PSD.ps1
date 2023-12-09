@@ -478,6 +478,7 @@ if (!($Upgrade)) {
     icacls $psDeploymentFolder /grant """*$SID_USERS"":(OI)(CI)(RX)" | Out-Null
     icacls $psDeploymentFolder /grant """*$SID_ADMINISTRATORS"":(OI)(CI)(F)" | Out-Null
     icacls $psDeploymentFolder /grant """*$SID_SYSTEM"":(OI)(CI)(F)" | Out-Null
+    icacls $psDeploymentFolder /inheritance:r | Out-Null
     Grant-SmbShareAccess -Name $psDeploymentShare -AccountName "*$SID_EVERYONE" -AccessRight Change -Force | Out-Null
     Revoke-SmbShareAccess -Name $psDeploymentShare -AccountName "*$SID_CREATOR_OWNER" -Force | Out-Null
 
