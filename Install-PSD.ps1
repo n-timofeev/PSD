@@ -75,6 +75,12 @@ $Script:DeploymentToolkitVersion = "2.2.8"
 $host.PrivateData.VerboseForegroundColor = 'Cyan'
 $psDeploymentFolder = $psDeploymentFolder.TrimEnd('\')
 
+$SID_USERS = 'S-1-5-32-545'
+$SID_ADMINISTRATORS = 'S-1-5-32-544'
+$SID_SYSTEM = 'S-1-5-18'
+$SID_EVERYONE = 'S-1-1-0'
+$SID_CREATOR_OWNER = 'S-1-3-0'
+
 
 function Start-PSDLog {
     [CmdletBinding()]
@@ -267,7 +273,7 @@ if (-not ($Upgrade.IsPresent)){
         Break
     }
   
-    $Null = New-SmbShare -Name $psDeploymentShare -Path $psDeploymentFolder -FullAccess Administrators -Description $description -ErrorAction Stop
+    $Null = New-SmbShare -Name $psDeploymentShare -Path $psDeploymentFolder -FullAccess "*$SID_ADMINISTRATORS" -Description $description -ErrorAction Stop
     Write-PSDInstallLog -Message "Deployment folder has now been shared as $($psDeploymentshare)" -writetoscreen $true
     # Create the deployment share at the specified path
     $script:PSDDrive = "PSD$(([string]((Get-MDTPersistentDrive | Where-Object Name -Like "PSD*").Count+1)).PadLeft(3,'0'))"
@@ -469,11 +475,11 @@ if (!($Upgrade)) {
     
     # Relax Permissions on DeploymentFolder and DeploymentShare
     Write-PSDInstallLog -Message "Relaxing permissions on $psDeploymentShare"
-    icacls $psDeploymentFolder /grant '"Users":(OI)(CI)(RX)' | Out-Null
-    icacls $psDeploymentFolder /grant '"Administrators":(OI)(CI)(F)' | Out-Null
-    icacls $psDeploymentFolder /grant '"SYSTEM":(OI)(CI)(F)' | Out-Null
-    Grant-SmbShareAccess -Name $psDeploymentShare -AccountName "EVERYONE" -AccessRight Change -Force | Out-Null
-    Revoke-SmbShareAccess -Name $psDeploymentShare -AccountName "CREATOR OWNER" -Force | Out-Null
+    icacls $psDeploymentFolder /grant """*$SID_USERS"":(OI)(CI)(RX)" | Out-Null
+    icacls $psDeploymentFolder /grant """*$SID_ADMINISTRATORS"":(OI)(CI)(F)" | Out-Null
+    icacls $psDeploymentFolder /grant """*$SID_SYSTEM"":(OI)(CI)(F)" | Out-Null
+    Grant-SmbShareAccess -Name $psDeploymentShare -AccountName "*$SID_EVERYONE" -AccessRight Change -Force | Out-Null
+    Revoke-SmbShareAccess -Name $psDeploymentShare -AccountName "*$SID_CREATOR_OWNER" -Force | Out-Null
 
     # copy the INI Files
     Copy-Item -Path "$PSScriptRoot\INIFiles\CustomSettings.ini" -Destination "$psDeploymentFolder\Control\CustomSettings.ini" -Force | Out-Null
