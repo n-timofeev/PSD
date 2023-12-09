@@ -159,7 +159,7 @@ if($ValidityPeriod -eq "NA"){
 }
 
 # Get the PSD reeot CA Certitificate
-$PSDRootCACert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {$_.FriendlyName -eq $RootCACertFriendlyName}
+$PSDRootCACert = Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object {$_.FriendlyName -eq $RootCACertFriendlyName} | Sort-Object -Property NotAfter -Descending | Select-Object -First 1
 
 # Create self-signed certificate
 Write-PSDInstallLog -Message "Creating Self-signed Certificate"
